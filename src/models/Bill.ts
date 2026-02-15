@@ -48,7 +48,7 @@ const BillSchema = new Schema<IBill>(
     vatAmount: { type: Number, default: 0 },
     total: { type: Number, required: true },
   },
-  { timestamps: true, strictPopulate: false }
+  { timestamps: true }
 );
 
 BillSchema.index({ createdAt: -1 });
