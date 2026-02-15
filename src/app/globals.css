@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  @apply bg-gray-50 text-gray-900 antialiased;
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Responsive table wrapper - horizontal scroll on small screens */
+.table-wrap {
+  @apply overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0;
+}
+
+/* Safe area for modals on notched devices */
+.safe-area-pb {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* Touch-friendly minimum tap target */
+@media (pointer: coarse) {
+  button:not([class*="w-"]):not([class*="min-w-"]),
+  a[role="button"],
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* A4 Bill print */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .bill-print-wrapper,
+  .bill-print-wrapper * {
+    visibility: visible;
+  }
+  .bill-print-wrapper {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    background: white;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .bill-a4 {
+    max-width: none !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+  }
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+}
