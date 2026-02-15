@@ -139,8 +139,6 @@ function BillsContent() {
                       </button>
                       <a
                         href={`/bills/${b._id}/print`}
-                        target="_blank"
-                        rel="noopener noreferrer"
                         className="text-primary-600 hover:underline"
                       >
                         Print
@@ -171,8 +169,6 @@ function BillsContent() {
               <div className="flex items-center gap-2">
                 <a
                   href={`/bills/${detailBill._id}/print`}
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className="rounded bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700"
                 >
                   Print

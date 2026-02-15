@@ -149,13 +149,13 @@ export default function BillPrintPage() {
               <th className="py-3 text-left font-semibold text-slate-700">Item</th>
               <th className="py-3 text-right font-semibold text-slate-700">Qty</th>
               <th className="py-3 text-right font-semibold text-slate-700">Rate (₹)</th>
-              <th className="py-3 text-right font-semibold text-slate-700">Discount</th>
+              <th className="py-3 text-right font-semibold text-slate-700">Product discount (₹)</th>
               <th className="py-3 text-right font-semibold text-slate-700">Amount (₹)</th>
             </tr>
           </thead>
           <tbody>
             {bill.items.map((item, i) => {
-              const discount = item.discount ?? 0;
+              const discount = Number(item.discount) || 0;
               return (
                 <tr key={i} className="border-b border-slate-100">
                   <td className="py-2.5 text-slate-600">{i + 1}</td>
@@ -163,7 +163,7 @@ export default function BillPrintPage() {
                   <td className="py-2.5 text-right text-slate-600">{item.quantity}</td>
                   <td className="py-2.5 text-right text-slate-600">{item.unitPrice.toFixed(2)}</td>
                   <td className="py-2.5 text-right text-slate-600">
-                    {discount > 0 ? `−${discount.toFixed(2)}` : "—"}
+                    {discount > 0 ? `−₹${discount.toFixed(2)}` : "—"}
                   </td>
                   <td className="py-2.5 text-right font-medium text-slate-800">{item.total.toFixed(2)}</td>
                 </tr>
@@ -179,10 +179,10 @@ export default function BillPrintPage() {
               <span>Subtotal</span>
               <span>₹{bill.subtotal.toFixed(2)}</span>
             </div>
-            {bill.wholeDiscount != null && bill.wholeDiscount > 0 && (
+            {(Number(bill.wholeDiscount) || 0) > 0 && (
               <div className="flex justify-between text-amber-700">
-                <span>Discount</span>
-                <span>−₹{bill.wholeDiscount.toFixed(2)}</span>
+                <span>Whole discount</span>
+                <span>−₹{Number(bill.wholeDiscount).toFixed(2)}</span>
               </div>
             )}
             {bill.withVat && (

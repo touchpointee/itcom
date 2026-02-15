@@ -1,9 +1,195 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
 
 const VAT_RATE = 5;
+
+interface BillItem {
+  name: string;
+  quantity: number;
+  unitPrice: number;
+  discount?: number;
+  total: number;
+}
+
+interface BillCustomer {
+  name: string;
+  phone: string;
+  email?: string;
+  address?: string;
+}
+
+interface PrintBill {
+  _id: string;
+  billNumber: string;
+  customer?: BillCustomer | null;
+  items: BillItem[];
+  withVat: boolean;
+  subtotal: number;
+  wholeDiscount?: number;
+  vatRate: number;
+  vatAmount: number;
+  total: number;
+  createdAt: string;
+}
+
+function BillPrintPopup({
+  billId,
+  onClose,
+}: {
+  billId: string;
+  onClose: () => void;
+}) {
+  const [bill, setBill] = useState<PrintBill | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`/api/bills/${billId}`)
+      .then((r) => {
+        if (!r.ok) throw new Error("Failed to load bill");
+        return r.json();
+      })
+      .then(setBill)
+      .catch(() => setBill(null))
+      .finally(() => setLoading(false));
+  }, [billId]);
+
+  const dateStr = bill
+    ? new Date(bill.createdAt).toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "";
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-t-xl sm:rounded-xl shadow-xl w-full max-w-[210mm] max-h-[90dvh] overflow-y-auto flex flex-col safe-area-pb"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="no-print flex items-center justify-between gap-2 p-4 border-b border-slate-200 shrink-0">
+          <h2 className="text-lg font-semibold text-slate-800">Bill</h2>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => window.print()}
+              disabled={loading || !bill}
+              className="rounded bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
+            >
+              Print
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+        <div className="p-4 overflow-y-auto flex-1 min-h-0">
+          {loading && (
+            <p className="text-slate-500 text-sm py-8">Loading bill...</p>
+          )}
+          {!loading && !bill && (
+            <p className="text-red-600 text-sm py-8">Could not load bill.</p>
+          )}
+          {!loading && bill && (
+            <div className="bill-print-wrapper">
+              <div className="bill-a4 mx-auto w-full max-w-[210mm] rounded-lg border border-slate-200 bg-white px-6 py-8 shadow-sm">
+                <div className="mb-6 border-b border-slate-200 pb-4">
+                  <h1 className="text-2xl font-bold text-slate-800">Mobile Shop POS</h1>
+                  <p className="mt-1 text-sm text-slate-500">Tax Invoice / Bill</p>
+                </div>
+                <div className="mb-6 flex flex-wrap justify-between gap-4">
+                  <div>
+                    <span className="text-sm font-medium text-slate-500">Bill No</span>
+                    <p className="text-lg font-semibold text-slate-800">{bill.billNumber}</p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-sm font-medium text-slate-500">Date</span>
+                    <p className="text-slate-800">{dateStr}</p>
+                  </div>
+                </div>
+                {bill.customer && (
+                  <div className="mb-6 rounded border border-slate-200 bg-slate-50/50 p-4">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Bill To</div>
+                    <p className="mt-1 font-medium text-slate-800">{bill.customer.name}</p>
+                    <p className="text-sm text-slate-600">{bill.customer.phone}</p>
+                    {bill.customer.email && <p className="text-sm text-slate-600">{bill.customer.email}</p>}
+                    {bill.customer.address && <p className="mt-1 text-sm text-slate-600">{bill.customer.address}</p>}
+                  </div>
+                )}
+                <table className="w-full border-collapse text-sm">
+                  <thead>
+                    <tr className="border-b-2 border-slate-200">
+                      <th className="py-3 text-left font-semibold text-slate-700">#</th>
+                      <th className="py-3 text-left font-semibold text-slate-700">Item</th>
+                      <th className="py-3 text-right font-semibold text-slate-700">Qty</th>
+                      <th className="py-3 text-right font-semibold text-slate-700">Rate (₹)</th>
+                      <th className="py-3 text-right font-semibold text-slate-700">Product discount (₹)</th>
+                      <th className="py-3 text-right font-semibold text-slate-700">Amount (₹)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bill.items.map((item, i) => {
+                      const discount = Number(item.discount) || 0;
+                      return (
+                        <tr key={i} className="border-b border-slate-100">
+                          <td className="py-2.5 text-slate-600">{i + 1}</td>
+                          <td className="py-2.5 font-medium text-slate-800">{item.name}</td>
+                          <td className="py-2.5 text-right text-slate-600">{item.quantity}</td>
+                          <td className="py-2.5 text-right text-slate-600">{item.unitPrice.toFixed(2)}</td>
+                          <td className="py-2.5 text-right text-slate-600">
+                            {discount > 0 ? `−₹${discount.toFixed(2)}` : "—"}
+                          </td>
+                          <td className="py-2.5 text-right font-medium text-slate-800">{item.total.toFixed(2)}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+                <div className="mt-6 flex justify-end">
+                  <div className="w-full max-w-xs space-y-1.5 text-sm">
+                    <div className="flex justify-between text-slate-600">
+                      <span>Subtotal</span>
+                      <span>₹{bill.subtotal.toFixed(2)}</span>
+                    </div>
+                    {(Number(bill.wholeDiscount) || 0) > 0 && (
+                      <div className="flex justify-between text-amber-700">
+                        <span>Whole discount</span>
+                        <span>−₹{Number(bill.wholeDiscount).toFixed(2)}</span>
+                      </div>
+                    )}
+                    {bill.withVat && (
+                      <div className="flex justify-between text-slate-600">
+                        <span>VAT ({bill.vatRate}%)</span>
+                        <span>₹{bill.vatAmount.toFixed(2)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between border-t-2 border-slate-200 pt-2 text-base font-bold text-slate-800">
+                      <span>Total</span>
+                      <span>₹{bill.total.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-10 border-t border-slate-200 pt-4 text-center text-xs text-slate-400">
+                  Thank you for your business
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 interface Product {
   _id: string;
@@ -27,11 +213,12 @@ interface Customer {
 }
 
 export default function POSPage() {
-  const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [billingType, setBillingType] = useState<"walk_in" | "delivery">("walk_in");
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [customerSearch, setCustomerSearch] = useState("");
+  const [customerDropdownOpen, setCustomerDropdownOpen] = useState(false);
   const [showAddCustomer, setShowAddCustomer] = useState(false);
   const [newCustomerForm, setNewCustomerForm] = useState({
     name: "",
@@ -45,6 +232,7 @@ export default function POSPage() {
   const [wholeDiscount, setWholeDiscount] = useState(0);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [printedBillId, setPrintedBillId] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/products")
@@ -165,7 +353,7 @@ export default function POSPage() {
       return;
     }
     setCart([]);
-    router.push(`/bills?id=${data._id}`);
+    setPrintedBillId(data._id);
   }
 
   return (
@@ -211,40 +399,107 @@ export default function POSPage() {
           <div className="p-3 border-b border-slate-200 font-medium text-slate-700 shrink-0">
             Cart
           </div>
-          <div className="border-b border-slate-200 p-3 space-y-2">
-            <div className="text-xs font-medium text-slate-500">Customer</div>
-            <div className="flex gap-2">
-              <select
-                value={selectedCustomerId ?? ""}
-                onChange={(e) => setSelectedCustomerId(e.target.value || null)}
-                onFocus={() => setCustomerSearch("")}
-                className="flex-1 min-w-0 rounded border border-slate-200 px-2 py-1.5 text-sm"
-              >
-                <option value="">Walk-in</option>
-                {filteredCustomers.map((c) => (
-                  <option key={c._id} value={c._id}>
-                    {c.name} — {c.phone}
-                  </option>
-                ))}
-              </select>
+          <div className="border-b border-slate-200 p-3 space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-medium text-slate-500">Billed as</span>
+                <div className="flex rounded border border-slate-200 p-0.5">
+                  <button
+                    type="button"
+                    onClick={() => setBillingType("walk_in")}
+                    className={`rounded px-3 py-1.5 text-sm font-medium transition-colors ${
+                      billingType === "walk_in"
+                        ? "bg-primary-600 text-white"
+                        : "text-slate-600 hover:bg-slate-100"
+                    }`}
+                  >
+                    Walk in
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBillingType("delivery")}
+                    className={`rounded px-3 py-1.5 text-sm font-medium transition-colors ${
+                      billingType === "delivery"
+                        ? "bg-primary-600 text-white"
+                        : "text-slate-600 hover:bg-slate-100"
+                    }`}
+                  >
+                    Delivery
+                  </button>
+                </div>
+              </div>
               <button
                 type="button"
                 onClick={() => {
                   setNewCustomerForm({ name: "", phone: "", email: "", address: "" });
                   setShowAddCustomer(true);
                 }}
-                className="shrink-0 rounded border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100"
+                className="rounded border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100 h-[34px] flex items-center"
               >
-                Add
+                Add customer
               </button>
             </div>
-            <input
-              type="text"
-              placeholder="Search customer..."
-              value={customerSearch}
-              onChange={(e) => setCustomerSearch(e.target.value)}
-              className="w-full rounded border border-slate-200 px-2 py-1 text-xs"
-            />
+            <div className="relative">
+              <div className="text-xs font-medium text-slate-500 mb-1">Customer</div>
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search by name or phone..."
+                  value={
+                    selectedCustomerId
+                      ? (() => {
+                          const c = customers.find((x) => x._id === selectedCustomerId);
+                          return c ? `${c.name} — ${c.phone}` : "";
+                        })()
+                      : customerSearch
+                  }
+                  onChange={(e) => {
+                    setCustomerSearch(e.target.value);
+                    setSelectedCustomerId(null);
+                    setCustomerDropdownOpen(true);
+                  }}
+                  onFocus={() => setCustomerDropdownOpen(true)}
+                  onBlur={() => setTimeout(() => setCustomerDropdownOpen(false), 150)}
+                  className="w-full rounded border border-slate-200 px-3 py-2 text-sm pr-8"
+                />
+                {selectedCustomerId && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCustomerId(null)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-lg leading-none"
+                    aria-label="Clear customer"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+              {customerDropdownOpen && !selectedCustomerId && (
+                <ul className="absolute z-10 mt-1 w-full max-h-40 overflow-y-auto rounded border border-slate-200 bg-white shadow-lg py-1">
+                  {filteredCustomers.length === 0 ? (
+                    <li className="px-3 py-2 text-sm text-slate-500">
+                      {customerSearch.trim() ? "No customers found" : "Type to search"}
+                    </li>
+                  ) : (
+                    filteredCustomers.map((c) => (
+                      <li key={c._id}>
+                        <button
+                          type="button"
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-slate-50 flex flex-col"
+                          onClick={() => {
+                            setSelectedCustomerId(c._id);
+                            setCustomerSearch("");
+                            setCustomerDropdownOpen(false);
+                          }}
+                        >
+                          <span className="font-medium text-slate-800">{c.name}</span>
+                          <span className="text-xs text-slate-500">{c.phone}</span>
+                        </button>
+                      </li>
+                    ))
+                  )}
+                </ul>
+              )}
+            </div>
           </div>
           <div className="flex-1 overflow-y-auto p-3 space-y-2 min-h-0">
             {cart.length === 0 ? (
@@ -380,6 +635,13 @@ export default function POSPage() {
           </div>
         </div>
       </div>
+
+      {printedBillId && (
+        <BillPrintPopup
+          billId={printedBillId}
+          onClose={() => setPrintedBillId(null)}
+        />
+      )}
 
       {showAddCustomer && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4">
