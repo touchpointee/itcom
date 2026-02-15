@@ -474,7 +474,7 @@ export default function POSPage() {
                 )}
               </div>
               {customerDropdownOpen && !selectedCustomerId && (
-                <ul className="absolute z-10 mt-1 w-full max-h-40 overflow-y-auto rounded border border-slate-200 bg-white shadow-lg py-1">
+                <ul className="absolute z-10 mt-1 w-full max-h-48 overflow-y-auto rounded border border-slate-200 bg-white shadow-lg py-1">
                   {filteredCustomers.length === 0 ? (
                     <li className="px-3 py-2 text-sm text-slate-500">
                       {customerSearch.trim() ? "No customers found" : "Type to search"}
@@ -485,7 +485,8 @@ export default function POSPage() {
                         <button
                           type="button"
                           className="w-full text-left px-3 py-2 text-sm hover:bg-slate-50 flex flex-col"
-                          onClick={() => {
+                          onMouseDown={(e) => {
+                            e.preventDefault();
                             setSelectedCustomerId(c._id);
                             setCustomerSearch("");
                             setCustomerDropdownOpen(false);
@@ -497,6 +498,26 @@ export default function POSPage() {
                       </li>
                     ))
                   )}
+                  <li className="border-t border-slate-100 mt-1 pt-1">
+                    <button
+                      type="button"
+                      className="w-full text-left px-3 py-2 text-sm font-medium text-primary-600 hover:bg-primary-50 flex items-center gap-2"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        setCustomerDropdownOpen(false);
+                        setNewCustomerForm({
+                          name: customerSearch.trim() || "",
+                          phone: "",
+                          email: "",
+                          address: "",
+                        });
+                        setShowAddCustomer(true);
+                      }}
+                    >
+                      <span className="inline-flex items-center justify-center w-5 h-5 rounded bg-primary-100 text-primary-600 text-xs">+</span>
+                      Add customer
+                    </button>
+                  </li>
                 </ul>
               )}
             </div>
