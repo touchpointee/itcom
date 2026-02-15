@@ -25,6 +25,7 @@ function LogoutButton() {
 const nav = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/products", label: "Products" },
+  { href: "/bulk-upload", label: "Bulk upload" },
   { href: "/categories", label: "Categories" },
   { href: "/distributors", label: "Distributors" },
   { href: "/customers", label: "Customers" },

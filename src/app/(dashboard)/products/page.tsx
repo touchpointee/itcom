@@ -199,7 +199,7 @@ export default function ProductsPage() {
   async function handleDeleteSelected() {
     if (!someSelected || !confirm(`Delete ${selectedIds.size} selected product(s)?`)) return;
     setSaving(true);
-    const ids = [...selectedIds];
+    const ids = Array.from(selectedIds);
     await Promise.all(ids.map((id) => fetch(`/api/products/${id}`, { method: "DELETE" })));
     setSelectedIds(new Set());
     setSaving(false);
