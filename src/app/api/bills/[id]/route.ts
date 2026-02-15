@@ -18,6 +18,7 @@ export async function GET(
     await connectDB();
     const bill = await Bill.findById(id)
       .populate({ path: "customer", select: "name phone email address", strictPopulate: false })
+      .populate({ path: "paymentMethod", select: "name", strictPopulate: false })
       .populate("items.product", "name")
       .lean();
     if (!bill) return NextResponse.json({ error: "Not found" }, { status: 404 });

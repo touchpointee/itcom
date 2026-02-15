@@ -39,6 +39,7 @@ export async function GET(request: NextRequest) {
 
     const bills = await Bill.find(filter)
       .populate({ path: "customer", select: "name phone email address", strictPopulate: false })
+      .populate({ path: "paymentMethod", select: "name", strictPopulate: false })
       .sort({ createdAt: -1 })
       .lean();
     return NextResponse.json(bills);
@@ -54,7 +55,7 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB();
     const body = await request.json();
-    const { items, withVat, wholeDiscount: reqWholeDiscount, customerId } = body;
+    const { items, withVat, wholeDiscount: reqWholeDiscount, customerId, paymentMethodId } = body;
     if (!Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: "items array required" }, { status: 400 });
     }
@@ -107,6 +108,9 @@ export async function POST(request: NextRequest) {
     };
     if (customerId && mongoose.Types.ObjectId.isValid(customerId)) {
       billPayload.customer = customerId;
+    }
+    if (paymentMethodId && mongoose.Types.ObjectId.isValid(paymentMethodId)) {
+      billPayload.paymentMethod = paymentMethodId;
     }
     const bill = await Bill.create(billPayload);
 

@@ -1,5 +1,6 @@
 import mongoose, { Schema, Model } from "mongoose";
-import "./Customer"; // ensure Customer model is registered before Bill (for ref)
+import "./Customer";
+import "./PaymentMethod";
 
 export interface IBillItem {
   product: mongoose.Types.ObjectId;
@@ -14,6 +15,7 @@ export interface IBill {
   _id: mongoose.Types.ObjectId;
   billNumber: string;
   customer?: mongoose.Types.ObjectId;
+  paymentMethod?: mongoose.Types.ObjectId;
   items: IBillItem[];
   withVat: boolean;
   subtotal: number;
@@ -40,6 +42,7 @@ const BillSchema = new Schema<IBill>(
   {
     billNumber: { type: String, required: true, unique: true },
     customer: { type: Schema.Types.ObjectId, ref: "Customer" },
+    paymentMethod: { type: Schema.Types.ObjectId, ref: "PaymentMethod" },
     items: [BillItemSchema],
     withVat: { type: Boolean, default: true },
     subtotal: { type: Number, required: true },

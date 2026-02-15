@@ -30,6 +30,7 @@ const nav = [
   { href: "/distributors", label: "Distributors" },
   { href: "/customers", label: "Customers" },
   { href: "/pos", label: "POS" },
+  { href: "/payment-methods", label: "Payment methods" },
   { href: "/bills", label: "Bills" },
   { href: "/services", label: "Services" },
 ];

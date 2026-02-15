@@ -20,10 +20,16 @@ interface BillCustomer {
   address?: string;
 }
 
+interface BillPaymentMethod {
+  _id: string;
+  name: string;
+}
+
 interface Bill {
   _id: string;
   billNumber: string;
   customer?: BillCustomer | null;
+  paymentMethod?: BillPaymentMethod | null;
   items: BillItem[];
   withVat: boolean;
   subtotal: number;
@@ -109,6 +115,7 @@ function BillsContent() {
                 <tr>
                   <th className="text-left p-3 font-medium text-slate-700">Bill No</th>
                   <th className="text-left p-3 font-medium text-slate-700">Customer</th>
+                  <th className="text-left p-3 font-medium text-slate-700">Payment</th>
                   <th className="text-right p-3 font-medium text-slate-700">Subtotal</th>
                   <th className="text-right p-3 font-medium text-slate-700">VAT</th>
                   <th className="text-right p-3 font-medium text-slate-700">Total</th>
@@ -122,6 +129,9 @@ function BillsContent() {
                     <td className="p-3 font-medium">{b.billNumber}</td>
                     <td className="p-3 text-slate-600">
                       {b.customer ? `${b.customer.name} (${b.customer.phone})` : "—"}
+                    </td>
+                    <td className="p-3 text-slate-600">
+                      {b.paymentMethod?.name || "—"}
                     </td>
                     <td className="p-3 text-right">₹{b.subtotal.toFixed(2)}</td>
                     <td className="p-3 text-right">₹{b.vatAmount.toFixed(2)}</td>
@@ -197,6 +207,12 @@ function BillsContent() {
                 {detailBill.customer.address && (
                   <div className="text-slate-500">{detailBill.customer.address}</div>
                 )}
+              </div>
+            )}
+            {detailBill.paymentMethod && (
+              <div className="mb-4 text-sm px-1">
+                <span className="text-slate-500">Payment Method: </span>
+                <span className="font-medium text-slate-700">{detailBill.paymentMethod.name}</span>
               </div>
             )}
             <div className="border border-slate-200 rounded-md overflow-hidden mb-4">

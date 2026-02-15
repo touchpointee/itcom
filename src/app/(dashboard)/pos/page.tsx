@@ -19,10 +19,16 @@ interface BillCustomer {
   address?: string;
 }
 
+interface BillPaymentMethod {
+  _id: string;
+  name: string;
+}
+
 interface PrintBill {
   _id: string;
   billNumber: string;
   customer?: BillCustomer | null;
+  paymentMethod?: BillPaymentMethod | null;
   items: BillItem[];
   withVat: boolean;
   subtotal: number;
@@ -56,12 +62,12 @@ function BillPrintPopup({
 
   const dateStr = bill
     ? new Date(bill.createdAt).toLocaleDateString("en-IN", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    })
     : "";
 
   return (
@@ -115,6 +121,12 @@ function BillPrintPopup({
                   <div className="text-right">
                     <span className="text-sm font-medium text-slate-500">Date</span>
                     <p className="text-slate-800">{dateStr}</p>
+                    {bill.paymentMethod && (
+                      <div className="mt-1">
+                        <span className="text-xs font-medium text-slate-500">Payment: </span>
+                        <span className="text-sm font-semibold text-slate-700">{bill.paymentMethod.name}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
                 {bill.customer && (
@@ -212,9 +224,16 @@ interface Customer {
   address?: string;
 }
 
+interface PaymentMethod {
+  _id: string;
+  name: string;
+}
+
 export default function POSPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<string | null>(null);
   const [billingType, setBillingType] = useState<"walk_in" | "delivery">("walk_in");
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [customerSearch, setCustomerSearch] = useState("");
@@ -241,6 +260,9 @@ export default function POSPage() {
     fetch("/api/customers")
       .then((r) => r.json())
       .then(setCustomers);
+    fetch("/api/payment-methods")
+      .then((r) => r.json())
+      .then((data) => setPaymentMethods(Array.isArray(data) ? data : []));
   }, []);
 
   const filtered = useMemo(() => {
@@ -344,6 +366,7 @@ export default function POSPage() {
         withVat: withVat,
         wholeDiscount: wholeDiscount,
         customerId: selectedCustomerId || undefined,
+        paymentMethodId: selectedPaymentMethodId || undefined,
       }),
     });
     const data = await res.json();
@@ -407,22 +430,20 @@ export default function POSPage() {
                   <button
                     type="button"
                     onClick={() => setBillingType("walk_in")}
-                    className={`rounded px-3 py-1.5 text-sm font-medium transition-colors ${
-                      billingType === "walk_in"
+                    className={`rounded px-3 py-1.5 text-sm font-medium transition-colors ${billingType === "walk_in"
                         ? "bg-primary-600 text-white"
                         : "text-slate-600 hover:bg-slate-100"
-                    }`}
+                      }`}
                   >
                     Walk in
                   </button>
                   <button
                     type="button"
                     onClick={() => setBillingType("delivery")}
-                    className={`rounded px-3 py-1.5 text-sm font-medium transition-colors ${
-                      billingType === "delivery"
+                    className={`rounded px-3 py-1.5 text-sm font-medium transition-colors ${billingType === "delivery"
                         ? "bg-primary-600 text-white"
                         : "text-slate-600 hover:bg-slate-100"
-                    }`}
+                      }`}
                   >
                     Delivery
                   </button>
@@ -448,9 +469,9 @@ export default function POSPage() {
                   value={
                     selectedCustomerId
                       ? (() => {
-                          const c = customers.find((x) => x._id === selectedCustomerId);
-                          return c ? `${c.name} — ${c.phone}` : "";
-                        })()
+                        const c = customers.find((x) => x._id === selectedCustomerId);
+                        return c ? `${c.name} — ${c.phone}` : "";
+                      })()
                       : customerSearch
                   }
                   onChange={(e) => {
@@ -569,31 +590,31 @@ export default function POSPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => updateQty(c.product._id, -1)}
-                      className="w-7 h-7 rounded border border-slate-300 text-slate-600 hover:bg-slate-100"
-                    >
-                      −
-                    </button>
-                    <span className="w-8 text-center text-sm">{c.quantity}</span>
-                    <button
-                      type="button"
-                      onClick={() => updateQty(c.product._id, 1)}
-                      disabled={c.quantity >= c.product.stock}
-                      className="w-7 h-7 rounded border border-slate-300 text-slate-600 hover:bg-slate-100 disabled:opacity-50"
-                    >
-                      +
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => removeFromCart(c.product._id)}
-                      className="ml-1 text-sm text-red-600 hover:underline"
-                    >
-                      Remove
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() => updateQty(c.product._id, -1)}
+                        className="w-7 h-7 rounded border border-slate-300 text-slate-600 hover:bg-slate-100"
+                      >
+                        −
+                      </button>
+                      <span className="w-8 text-center text-sm">{c.quantity}</span>
+                      <button
+                        type="button"
+                        onClick={() => updateQty(c.product._id, 1)}
+                        disabled={c.quantity >= c.product.stock}
+                        className="w-7 h-7 rounded border border-slate-300 text-slate-600 hover:bg-slate-100 disabled:opacity-50"
+                      >
+                        +
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removeFromCart(c.product._id)}
+                        className="ml-1 text-sm text-red-600 hover:underline"
+                      >
+                        Remove
+                      </button>
+                    </div>
                   </div>
-                </div>
                 );
               })
             )}
@@ -643,6 +664,21 @@ export default function POSPage() {
                 <span>Total</span>
                 <span>₹{total.toFixed(2)}</span>
               </div>
+            </div>
+            <div className="pt-2">
+              <label className="block text-xs font-medium text-slate-500 mb-1">Payment method</label>
+              <select
+                value={selectedPaymentMethodId ?? ""}
+                onChange={(e) => setSelectedPaymentMethodId(e.target.value || null)}
+                className="w-full rounded border border-slate-200 px-3 py-2 text-sm text-slate-800"
+              >
+                <option value="">Select payment method</option>
+                {paymentMethods.map((pm) => (
+                  <option key={pm._id} value={pm._id}>
+                    {pm.name}
+                  </option>
+                ))}
+              </select>
             </div>
             {error && <p className="text-sm text-red-600">{error}</p>}
             <button
