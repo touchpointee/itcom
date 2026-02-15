@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB();
     const body = await request.json();
-    const { items, withVat, wholeDiscount: reqWholeDiscount, customerId, paymentMethodId } = body;
+    const { items, withVat, wholeDiscount: reqWholeDiscount, customerId, paymentMethodId: paymentMethodIdRaw } = body;
     if (!Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: "items array required" }, { status: 400 });
     }
@@ -109,8 +109,10 @@ export async function POST(request: NextRequest) {
     if (customerId && mongoose.Types.ObjectId.isValid(customerId)) {
       billPayload.customer = customerId;
     }
+    // Always persist payment method when a valid id is sent
+    const paymentMethodId = paymentMethodIdRaw != null ? String(paymentMethodIdRaw).trim() : "";
     if (paymentMethodId && mongoose.Types.ObjectId.isValid(paymentMethodId)) {
-      billPayload.paymentMethod = paymentMethodId;
+      billPayload.paymentMethod = new mongoose.Types.ObjectId(paymentMethodId);
     }
     const bill = await Bill.create(billPayload);
 

@@ -47,11 +47,11 @@ export default function BulkUploadPage() {
 
   return (
     <div className="flex flex-col min-h-0">
-      <h1 className="text-xl font-semibold text-slate-800 mb-3 md:text-2xl md:mb-4">
+      <h1 className="mb-4 text-2xl font-bold tracking-tight text-slate-900 md:text-3xl md:mb-6">
         Bulk upload
       </h1>
 
-      <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden max-w-2xl">
+      <div className="max-w-2xl overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-card">
         <div className="p-6 space-y-6">
           <p className="text-slate-600 text-sm">
             Upload an Excel file (.xlsx) to add many products at once. Use the template below to get the correct columns.

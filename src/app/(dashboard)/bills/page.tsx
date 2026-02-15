@@ -80,7 +80,7 @@ function BillsContent() {
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4 md:mb-6">
-        <h1 className="text-xl font-semibold text-slate-800 md:text-2xl">Bills</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">Bills</h1>
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           <input
             type="text"
@@ -105,7 +105,7 @@ function BillsContent() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+      <div className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-card">
         {loading ? (
           <p className="p-6 text-slate-500">Loading...</p>
         ) : (
@@ -115,7 +115,6 @@ function BillsContent() {
                 <tr>
                   <th className="text-left p-3 font-medium text-slate-700">Bill No</th>
                   <th className="text-left p-3 font-medium text-slate-700">Customer</th>
-                  <th className="text-left p-3 font-medium text-slate-700">Payment</th>
                   <th className="text-right p-3 font-medium text-slate-700">Subtotal</th>
                   <th className="text-right p-3 font-medium text-slate-700">VAT</th>
                   <th className="text-right p-3 font-medium text-slate-700">Total</th>
@@ -129,9 +128,6 @@ function BillsContent() {
                     <td className="p-3 font-medium">{b.billNumber}</td>
                     <td className="p-3 text-slate-600">
                       {b.customer ? `${b.customer.name} (${b.customer.phone})` : "—"}
-                    </td>
-                    <td className="p-3 text-slate-600">
-                      {b.paymentMethod?.name || "—"}
                     </td>
                     <td className="p-3 text-right">₹{b.subtotal.toFixed(2)}</td>
                     <td className="p-3 text-right">₹{b.vatAmount.toFixed(2)}</td>
@@ -207,12 +203,6 @@ function BillsContent() {
                 {detailBill.customer.address && (
                   <div className="text-slate-500">{detailBill.customer.address}</div>
                 )}
-              </div>
-            )}
-            {detailBill.paymentMethod && (
-              <div className="mb-4 text-sm px-1">
-                <span className="text-slate-500">Payment Method: </span>
-                <span className="font-medium text-slate-700">{detailBill.paymentMethod.name}</span>
               </div>
             )}
             <div className="border border-slate-200 rounded-md overflow-hidden mb-4">

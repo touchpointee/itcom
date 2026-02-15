@@ -140,7 +140,7 @@ export default function ServicesPage() {
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <h1 className="text-xl font-semibold text-slate-800 md:text-2xl">Services</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">Services</h1>
         <div className="flex items-center gap-2">
           <select
             value={statusFilter}
@@ -162,7 +162,7 @@ export default function ServicesPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+      <div className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-card">
         {loading ? (
           <p className="p-6 text-slate-500">Loading...</p>
         ) : (

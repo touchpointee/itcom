@@ -3,6 +3,28 @@
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+function amountInWords(amount: number): string {
+  const ones = ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
+  const tens = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
+  const teens = ["ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"];
+  const whole = Math.floor(amount);
+  const paise = Math.round((amount - whole) * 100);
+  function toWords(n: number): string {
+    if (n === 0) return "";
+    if (n < 10) return ones[n];
+    if (n < 20) return teens[n - 10];
+    if (n < 100) return (tens[Math.floor(n / 10)] + " " + ones[n % 10]).trim();
+    if (n < 1000) return (ones[Math.floor(n / 100)] ? ones[Math.floor(n / 100)] + " hundred " : "") + (n % 100 ? toWords(n % 100) : "").trim();
+    if (n < 100000) return (toWords(Math.floor(n / 1000)) + " thousand " + toWords(n % 1000)).trim();
+    if (n < 10000000) return (toWords(Math.floor(n / 100000)) + " lakh " + toWords(n % 100000)).trim();
+    return (toWords(Math.floor(n / 10000000)) + " crore " + toWords(n % 10000000)).trim();
+  }
+  const wholeStr = whole === 0 ? "zero" : toWords(whole);
+  const rupees = wholeStr + " rupee" + (whole !== 1 ? "s" : "");
+  const paiseStr = paise > 0 ? " and " + toWords(paise) + " paise" : "";
+  return rupees + paiseStr + " only";
+}
+
 interface BillItem {
   name: string;
   quantity: number;
@@ -18,10 +40,16 @@ interface BillCustomer {
   address?: string;
 }
 
+interface BillPaymentMethod {
+  _id: string;
+  name: string;
+}
+
 interface Bill {
   _id: string;
   billNumber: string;
   customer?: BillCustomer | null;
+  paymentMethod?: BillPaymentMethod | null;
   items: BillItem[];
   withVat: boolean;
   subtotal: number;
@@ -110,7 +138,7 @@ export default function BillPrintPage() {
       <div className="bill-a4 mx-auto w-full max-w-[210mm] rounded-lg border border-slate-200 bg-white px-6 py-8 shadow-sm print:max-w-none print:border-0 print:shadow-none print:rounded-none">
         {/* Header */}
         <div className="mb-6 border-b border-slate-200 pb-4">
-          <h1 className="text-2xl font-bold text-slate-800">Mobile Shop POS</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-800">Shop Manager</h1>
           <p className="mt-1 text-sm text-slate-500">Tax Invoice / Bill</p>
         </div>
 
@@ -123,6 +151,12 @@ export default function BillPrintPage() {
           <div className="text-right">
             <span className="text-sm font-medium text-slate-500">Date</span>
             <p className="text-slate-800">{dateStr}</p>
+            <div className="mt-2">
+              <span className="text-sm font-medium text-slate-500">Payment method: </span>
+              <span className="text-sm font-semibold text-slate-800">
+                {(bill.paymentMethod && typeof bill.paymentMethod === "object" && (bill.paymentMethod as { name?: string }).name) || "—"}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -196,6 +230,11 @@ export default function BillPrintPage() {
               <span>₹{bill.total.toFixed(2)}</span>
             </div>
           </div>
+        </div>
+
+        <div className="mt-3 text-sm text-slate-600">
+          <span className="font-medium text-slate-500">Amount in words: </span>
+          {amountInWords(bill.total)}
         </div>
 
         {/* Footer */}

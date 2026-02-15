@@ -210,7 +210,7 @@ export default function ProductsPage() {
   return (
     <div>
       <div className="mb-4 md:mb-6">
-        <h1 className="text-xl font-semibold text-slate-800 mb-3 md:text-2xl">Products</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">Products</h1>
         <div className="flex flex-wrap items-center gap-2">
           <input
             type="text"
@@ -278,7 +278,7 @@ export default function ProductsPage() {
         </div>
       )}
 
-      <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+      <div className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-card">
         {loading ? (
           <p className="p-6 text-slate-500">Loading...</p>
         ) : (
