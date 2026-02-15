@@ -79,7 +79,7 @@ export default function ServicesPage() {
 
   function openEdit(s: Service) {
     setEditing(s);
-    const customerId = typeof s.customer === "object" ? s.customer._id : s.customer;
+    const customerId = typeof s.customer === "object" && s.customer ? s.customer._id : s.customer;
     setForm({
       customerId: customerId ?? "",
       device: s.device,
@@ -191,13 +191,12 @@ export default function ServicesPage() {
                       <select
                         value={s.status}
                         onChange={(e) => updateStatus(s, e.target.value as Status)}
-                        className={`text-sm border rounded px-2 py-1 ${
-                          s.status === "Completed"
+                        className={`text-sm border rounded px-2 py-1 ${s.status === "Completed"
                             ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                             : s.status === "In Progress"
-                            ? "bg-amber-50 text-amber-700 border-amber-200"
-                            : "bg-slate-50 text-slate-700 border-slate-200"
-                        }`}
+                              ? "bg-amber-50 text-amber-700 border-amber-200"
+                              : "bg-slate-50 text-slate-700 border-slate-200"
+                          }`}
                       >
                         {STATUS_OPTIONS.map((opt) => (
                           <option key={opt} value={opt}>{opt}</option>

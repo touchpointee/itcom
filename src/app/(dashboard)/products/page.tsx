@@ -30,9 +30,7 @@ export default function ProductsPage() {
   const [distributorFilter, setDistributorFilter] = useState("");
   const [lowStockOnly, setLowStockOnly] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [modal, setModal] = useState<"add" | "edit" | "stock" | "import" | null>(null);
-  const [importFile, setImportFile] = useState<File | null>(null);
-  const [importResult, setImportResult] = useState<{ imported: number; errors?: string[] } | null>(null);
+  const [modal, setModal] = useState<"add" | "edit" | "stock" | null>(null);
   const [editing, setEditing] = useState<Product | null>(null);
   const [stockProduct, setStockProduct] = useState<Product | null>(null);
   const [form, setForm] = useState({
@@ -96,8 +94,8 @@ export default function ProductsPage() {
     setEditing(p);
     setForm({
       name: p.name,
-      category: typeof p.category === "object" ? p.category._id : p.category,
-      distributor: typeof p.distributor === "object" ? p.distributor._id : p.distributor,
+      category: typeof p.category === "object" && p.category ? p.category._id : p.category,
+      distributor: typeof p.distributor === "object" && p.distributor ? p.distributor._id : p.distributor,
       purchasePrice: String(p.purchasePrice),
       sellingPrice: String(p.sellingPrice),
       stock: String(p.stock),
@@ -249,26 +247,6 @@ export default function ProductsPage() {
             />
             Low stock
           </label>
-          <a
-            href="/api/excel/template"
-            download="products_template.xlsx"
-            className="px-3 py-2 bg-slate-100 text-slate-700 rounded-md text-sm hover:bg-slate-200"
-          >
-            Template
-          </a>
-          <button
-            type="button"
-            onClick={() => { setModal("import"); setImportFile(null); setImportResult(null); setError(""); }}
-            className="px-3 py-2 bg-slate-100 text-slate-700 rounded-md text-sm hover:bg-slate-200"
-          >
-            Import
-          </button>
-          <a
-            href="/api/excel/export"
-            className="px-3 py-2 bg-slate-100 text-slate-700 rounded-md text-sm hover:bg-slate-200"
-          >
-            Export
-          </a>
           <button
             type="button"
             onClick={openAdd}
@@ -488,72 +466,6 @@ export default function ProductsPage() {
                   className="px-4 py-2 bg-primary-600 text-white rounded-md disabled:opacity-50"
                 >
                   {saving ? "Saving..." : "Save"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      ) : null}
-
-      {modal === "import" ? (
-        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
-          <div className="bg-white rounded-t-xl sm:rounded-xl shadow-xl max-w-md w-full max-h-[85dvh] overflow-y-auto p-6 safe-area-pb">
-            <h2 className="text-lg font-semibold mb-4">Import Products (Excel)</h2>
-            <p className="text-sm text-slate-500 mb-4">
-              Upload .xlsx with columns: name, categoryId, distributorId, purchasePrice, sellingPrice, stock, imei
-            </p>
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-                if (!importFile) return;
-                setSaving(true);
-                setError("");
-                const fd = new FormData();
-                fd.set("file", importFile);
-                const res = await fetch("/api/excel/import", { method: "POST", body: fd });
-                const data = await res.json();
-                setSaving(false);
-                if (!res.ok) { setError(data.error || "Import failed"); return; }
-                setImportResult({ imported: data.imported, errors: data.errors });
-                loadProducts();
-              }}
-              className="space-y-3"
-            >
-              <input
-                type="file"
-                accept=".xlsx,.xls"
-                onChange={(e) => setImportFile(e.target.files?.[0] ?? null)}
-                className="w-full text-sm"
-              />
-              {error && <p className="text-sm text-red-600">{error}</p>}
-              {importResult && (
-                <p className="text-sm text-slate-600">
-                  Imported {importResult.imported} product(s).
-                  {importResult.errors?.length ? ` ${importResult.errors.length} row(s) had errors.` : ""}
-                </p>
-              )}
-              {importResult?.errors && importResult.errors.length > 0 && (
-                <ul className="text-xs text-amber-700 max-h-24 overflow-y-auto">
-                  {importResult.errors.slice(0, 10).map((err, i) => (
-                    <li key={i}>{err}</li>
-                  ))}
-                  {importResult.errors.length > 10 && <li>...and more</li>}
-                </ul>
-              )}
-              <div className="flex gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => { setModal(null); setImportResult(null); }}
-                  className="px-4 py-2 border rounded-md"
-                >
-                  Close
-                </button>
-                <button
-                  type="submit"
-                  disabled={saving || !importFile}
-                  className="px-4 py-2 bg-primary-600 text-white rounded-md disabled:opacity-50"
-                >
-                  {saving ? "Importing..." : "Upload"}
                 </button>
               </div>
             </form>
